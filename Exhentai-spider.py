@@ -15,6 +15,8 @@ import logging
 from logging import handlers
 import PySimpleGUI as sg
 
+
+# 正则表达式
 findImg = re.compile(r'href="(.*?)">Download',re.S)
 findUrl = re.compile(r'href="(.*?)" onclick',re.S)
 findImg1 = re.compile(r'src="(.*?)" style',re.S)
@@ -26,12 +28,13 @@ findlimit = re.compile(r'<strong>(.*?)</strong>',re.S)
 
 
 def main():
+    # 获取图片限额
     try:
         limits = findlimits("https://e-hentai.org/home.php")
     except:
         limits = ['0','0']
     sg.theme('DarkTeal2')
-    # print(sg.theme_previewer())
+    # print(sg.theme_previewer()) #输出所有GUI主题
     form1 = sg.FlexForm('exhentai图片下载器', no_titlebar=False, grab_anywhere=True,font=("微软雅黑"),icon=(r'E:\DEMO\douban\图片爬虫\bitbug_favicon.ico'))
     layout = [
         # [sg.InputCombo(['男','女','隐私'],auto_size_text=True)],
@@ -65,6 +68,7 @@ def main():
     getData(firsturl, path, a, b)
 
 
+# 获取图片限额
 def findlimits(url):
     head = {  # 模拟浏览器头部信息
         "cookie": r"%s" % cookie,
@@ -113,6 +117,8 @@ class Logger(object):
         self.logger.addHandler(sh) #把对象加到logger里
         self.logger.addHandler(th)
 
+
+# 获取第一页的网址（用户输入的是目录页网址）
 def getfirstUrl(url,a):
     a = int(a)
     m = a // 40
@@ -137,6 +143,7 @@ def getfirstUrl(url,a):
     print(firstUrl)
     return firstUrl
 
+# 访问服务器
 def askURL(url):
     head = {  # 模拟浏览器头部信息
         "cookie": r"%s"%cookie,
@@ -151,6 +158,7 @@ def askURL(url):
     except:
         return i
 
+#爬取数据
 def getData(url,path,a,b):
     datalist = []
     html = askURL(url)
@@ -200,6 +208,7 @@ def getData(url,path,a,b):
     return datalist
 
 
+# 创建文件夹，以图库名命名
 def createPath(url,a):
     html = askURL(url)
     soup = BeautifulSoup(html, "lxml")
@@ -222,20 +231,7 @@ def createPath(url,a):
     return path
 
 
-def imgdown(data,i,path):
-    head = {  # 模拟浏览器头部信息
-        "cookie": r"%s"%cookie,
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.80 Safari/537.36 Edg/86.0.622.43",
-        "Host": "exhentai.org"
-    }
-    if os.path.exists(path + "/" + str(i) + ".jpg"):
-        print("第 %d 张图片已存在。"%i)
-        return
-    print("第 %d 张图片加入下载线程..."%i)
-    res = requests.get(url=data,headers=head).content
-    with open(path + "/" + str(i) + ".jpg", 'wb')as f:  # 以wb方式打开文件,b就是binary的缩写,代表二进制
-        f.write(res)
-
+# 下载图片
 def single_thread_download(url, a ,dst, m):
     """
     @param: url to download file
@@ -287,6 +283,7 @@ def single_thread_download(url, a ,dst, m):
     #             pbar.update(1024)
     # pbar.close()
 
+#多线程下载
 def ManyDownload(url_queue,img, i, path,m):
     url_queue.put(img)
     for item in range(10):
