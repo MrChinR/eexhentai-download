@@ -299,17 +299,17 @@ def ManyDownload(url_queue,img, i, path,m):
 
 if __name__ == '__main__':
     log = Logger('all.log', level='info')
-    # try:
-    if not os.path.exists("./cookie.txt"):  # 判断,是否存在此路径,若不存在则创建,注意这个创建的是文件夹
-        cookie = input("请输入您的cookie ：\n")
-        file_handle = open('cookie.txt', mode='w+')
-        file_handle.write(cookie)
-        file_handle.close()
-    else:
-        with open('cookie.txt') as file:
-            cookie = file.read()
-            # print(cookie)
-            file.close()
-    main()
-    # except Exception as e:
-    #     log.logger.error(e)
+    try:
+        if not os.path.exists("./cookie.txt"):  # 判断,是否存在此路径,若不存在则创建,注意这个创建的是文件夹
+            cookie = input("请输入您的cookie ：\n")
+            file_handle = open('cookie.txt', mode='w+')
+            file_handle.write(cookie)
+            file_handle.close()
+        else:
+            with open('cookie.txt') as file:
+                cookie = file.read()
+                # print(cookie)
+                file.close()
+        main()
+    except Exception as e:
+        log.logger.error(e)
