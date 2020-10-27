@@ -1,8 +1,5 @@
 # -*- coding = utf-8 -*-
-#@Time : 2020/10/3 0:01
-#@Author : Chin
-#@File : 爬取封面.py
-#@Software : PyCharm
+
 from selenium import webdriver #导入包
 from bs4 import BeautifulSoup
 import re
