@@ -169,7 +169,7 @@ def getData(url,path,a,b):
     else:
         i = int(a)
     url_queue = Queue()
-    if b == '':
+    if b == ''or int(b) > page1:
         page = page1
     else:
         page = int(b)
@@ -212,7 +212,7 @@ def createPath(url,a):
     item = soup.find_all("div", class_="sni")
     item = str(item)
     title = re.findall(findTitle, item)[0]
-    aa = ['?', '╲', '*', '<', '>', '|', ':', '：']  #['*','|','?','/','<','>','"']
+    aa = ['?', '╲', '*', '<', '>', '|', ':', '：', '/']  #['*','|','?','/','<','>','"']
     for itm in aa:
         title = title.replace(itm,'_')
     p = r"%s"%a
