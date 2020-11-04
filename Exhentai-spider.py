@@ -1,27 +1,26 @@
 # -*- coding = utf-8 -*-
 
-from selenium import webdriver #导入包
+from selenium import webdriver  # 导入包
 from bs4 import BeautifulSoup
 import re
 import os, time, threading
-import requests,sys
-import urllib.request,urllib.error #置顶URL，获取网页数据
+import requests, sys
+import urllib.request, urllib.error  # 置顶URL，获取网页数据
 from queue import Queue
 from tqdm import tqdm
 import logging
 from logging import handlers
 import PySimpleGUI as sg
 
-
 # 正则表达式
-findImg = re.compile(r'href="(.*?)">Download',re.S)
-findUrl = re.compile(r'href="(.*?)" onclick',re.S)
-findImg1 = re.compile(r'src="(.*?)" style',re.S)
-findPage = re.compile(r'/ <span>(.*?)</span></div><a href',re.S)
+findImg = re.compile(r'href="(.*?)">Download', re.S)
+findUrl = re.compile(r'href="(.*?)" onclick', re.S)
+findImg1 = re.compile(r'src="(.*?)" style', re.S)
+findPage = re.compile(r'/ <span>(.*?)</span></div><a href', re.S)
 findTitle = re.compile(r'<h1>(.*?)</h1>')
 findfirstUrl = re.compile(r'<a href="(.*?)"><img')
 findsize = re.compile(r'https.*?-(.*?)-')
-findlimit = re.compile(r'<strong>(.*?)</strong>',re.S)
+findlimit = re.compile(r'<strong>(.*?)</strong>', re.S)
 
 
 def main():
@@ -29,22 +28,23 @@ def main():
     try:
         limits = findlimits("https://e-hentai.org/home.php")
     except:
-        limits = ['0','0']
+        limits = ['0', '0']
     sg.theme('DarkTeal2')
     # print(sg.theme_previewer()) #输出所有GUI主题
-    form1 = sg.FlexForm('exhentai图片下载器', no_titlebar=False, grab_anywhere=True,font=("微软雅黑"),icon=(r'E:\DEMO\douban\图片爬虫\bitbug_favicon.ico'))
+    form1 = sg.FlexForm('exhentai图片下载器', no_titlebar=False, grab_anywhere=True, font=("微软雅黑"),
+                        icon=(r'E:\DEMO\douban\图片爬虫\bitbug_favicon.ico'))
     layout = [
         # [sg.InputCombo(['男','女','隐私'],auto_size_text=True)],
-        [sg.Text('您的图片浏览限额：%s/%s'%(limits[0],limits[1]))],
+        [sg.Text('您的图片浏览限额：%s/%s' % (limits[0], limits[1]))],
         [sg.Text('若限额显示不正确，请确保您的表站能够正常打开,或开启全局代理。')],
         [sg.Text('起始页网址：', size=(10, 1))],
         [sg.InputText('')],
         [sg.Text('存储路径：', size=(10, 1))],
-        [sg.Input(key="_path_"), sg.FolderBrowse('打开',size=(7, 1))],
+        [sg.Input(key="_path_"), sg.FolderBrowse('打开', size=(7, 1))],
         [sg.Text('起始页码：', size=(8, 1)), sg.InputText('', size=(5, 1)), sg.Text('最终页码：', size=(8, 1)),
          sg.InputText('', size=(5, 1))],
         [sg.Text('不指定页码可不填写，默认下载全部图片。')],
-        [sg.Submit('提交',size=(7, 1)), sg.Cancel('取消',size=(7, 1))]
+        [sg.Submit('提交', size=(7, 1)), sg.Cancel('取消', size=(7, 1))]
     ]
     button, values = form1.Layout(layout).Read()
     if values["_path_"] == '':
@@ -56,12 +56,12 @@ def main():
     a = values[1]
     b = values[2]
     if a == '':
-        firsturl = getfirstUrl(url,1)
+        firsturl = getfirstUrl(url, 1)
     else:
         firsturl = getfirstUrl(url, a)
     # print(values[1])
-    path = createPath(firsturl,values["_path_"])
-    log.logger.info("您要下载的起始页网址为：%s\n您要保存的地址是：%s,本次下载的图片为：%s-%s。"%(url,path,str(a),str(b)))
+    path = createPath(firsturl, values["_path_"])
+    log.logger.info("您要下载的起始页网址为：%s\n您要保存的地址是：%s,本次下载的图片为：%s-%s。" % (url, path, str(a), str(b)))
     getData(firsturl, path, a, b)
 
 
@@ -74,7 +74,7 @@ def findlimits(url):
     # 用户代理，表示告诉服务器，我们是什么类型的机器、浏览器（本质上是告诉浏览器，我们可以接收什么水平的文件内容）
 
     request = urllib.request.Request(url, headers=head)
-    response = urllib.request.urlopen(request,timeout=5)
+    response = urllib.request.urlopen(request, timeout=5)
     html = response.read().decode("utf-8")
     # print(html)
     soup = BeautifulSoup(html, "lxml")
@@ -85,48 +85,51 @@ def findlimits(url):
     # print(limits)
     return limits
 
+
 # 日志
 class Logger(object):
     level_relations = {
-        'debug':logging.DEBUG,
-        'info':logging.INFO,
-        'warning':logging.WARNING,
-        'error':logging.ERROR,
-        'crit':logging.CRITICAL
-    }#日志级别关系映射
+        'debug': logging.DEBUG,
+        'info': logging.INFO,
+        'warning': logging.WARNING,
+        'error': logging.ERROR,
+        'crit': logging.CRITICAL
+    }  # 日志级别关系映射
 
-    def __init__(self,filename,level='info',when='D',interval=1,backCount=3,fmt='%(asctime)s - %(pathname)s[line:%(lineno)d] - %(levelname)s: %(message)s'):
+    def __init__(self, filename, level='info', when='D', interval=1, backCount=3,
+                 fmt='%(asctime)s - %(pathname)s[line:%(lineno)d] - %(levelname)s: %(message)s'):
         self.logger = logging.getLogger(filename)
-        format_str = logging.Formatter(fmt)#设置日志格式
-        self.logger.setLevel(self.level_relations.get(level))#设置日志级别
-        sh = logging.StreamHandler()#往屏幕上输出
-        sh.setFormatter(format_str) #设置屏幕上显示的格式
-        th = handlers.TimedRotatingFileHandler(filename=filename,when=when,interval=interval,backupCount=backCount,encoding='utf-8')#往文件里写入#指定间隔时间自动生成文件的处理器
-        #实例化TimedRotatingFileHandler
-        #interval是时间间隔，backupCount是备份文件的个数，如果超过这个个数，就会自动删除，when是间隔的时间单位，单位有以下几种：
+        format_str = logging.Formatter(fmt)  # 设置日志格式
+        self.logger.setLevel(self.level_relations.get(level))  # 设置日志级别
+        sh = logging.StreamHandler()  # 往屏幕上输出
+        sh.setFormatter(format_str)  # 设置屏幕上显示的格式
+        th = handlers.TimedRotatingFileHandler(filename=filename, when=when, interval=interval, backupCount=backCount,
+                                               encoding='utf-8')  # 往文件里写入#指定间隔时间自动生成文件的处理器
+        # 实例化TimedRotatingFileHandler
+        # interval是时间间隔，backupCount是备份文件的个数，如果超过这个个数，就会自动删除，when是间隔的时间单位，单位有以下几种：
         # S 秒
         # M 分
         # H 小时、
         # D 天、
         # W 每星期（interval==0时代表星期一）
         # midnight 每天凌晨
-        th.setFormatter(format_str)#设置文件里写入的格式
-        self.logger.addHandler(sh) #把对象加到logger里
+        th.setFormatter(format_str)  # 设置文件里写入的格式
+        self.logger.addHandler(sh)  # 把对象加到logger里
         self.logger.addHandler(th)
 
 
 # 获取第一页的网址（用户输入的是目录页网址）
-def getfirstUrl(url,a):
+def getfirstUrl(url, a):
     a = int(a)
     m = a // 40
     n = a % 40
     if n != 0:
         if m >= 1:
-            url = url + "?p=%s"%m
+            url = url + "?p=%s" % m
     else:
         m -= 1
         if m >= 1:
-            url = url + "?p=%s"%m
+            url = url + "?p=%s" % m
     html = askURL(url)
     while html == 0:
         html = askURL(url)
@@ -136,27 +139,29 @@ def getfirstUrl(url,a):
     item = str(item)
     # print(item)
     n -= 1
-    firstUrl = re.findall(findfirstUrl,item)[n]
+    firstUrl = re.findall(findfirstUrl, item)[n]
     print(firstUrl)
     return firstUrl
+
 
 # 访问服务器
 def askURL(url):
     head = {  # 模拟浏览器头部信息
-        "cookie": r"%s"%cookie,
+        "cookie": r"%s" % cookie,
         "User-Agent": "Mozilla / 5.0(Windows NT 10.0; Win64; x64) AppleWebKit / 537.36(KHTML, like Gecko) Chrome / 80.0.3987.122  Safari / 537.36"
     }
     i = 0
     try:
         request = urllib.request.Request(url, headers=head)
-        response = urllib.request.urlopen(request,timeout=8)
+        response = urllib.request.urlopen(request, timeout=8)
         html = response.read().decode("utf-8")
         return (html)
     except:
         return i
 
-#爬取数据
-def getData(url,path,a,b):
+
+# 爬取数据
+def getData(url, path, a, b):
     datalist = []
     html = askURL(url)
     soup = BeautifulSoup(html, "lxml")
@@ -169,7 +174,7 @@ def getData(url,path,a,b):
     else:
         i = int(a)
     url_queue = Queue()
-    if b == ''or int(b) > page1:
+    if b == '' or int(b) > page1:
         page = page1
     else:
         page = int(b)
@@ -179,57 +184,57 @@ def getData(url,path,a,b):
             continue
         soup = BeautifulSoup(html, "lxml")
         try:
-            item = soup.find_all("div",id="i7")
+            item = soup.find_all("div", id="i7")
             item = str(item)
-            img = re.findall(findImg,item)[0]
+            img = re.findall(findImg, item)[0]
             img = str(img)
-            img = img.replace("amp;","")
+            img = img.replace("amp;", "")
             # print(img)
             # imgdown(img, i, path)
             # single_thread_download(img, i, path)
-            ManyDownload(url_queue,img, i, path,1)
+            ManyDownload(url_queue, img, i, path, 1)
             datalist.append(img)
         except:
             item1 = soup.find_all("div", id="i3")
             item1 = str(item1)
-            img = re.findall(findImg1,item1)[0]
+            img = re.findall(findImg1, item1)[0]
             # print(img)
             # imgdown(img, i, path)
             # single_thread_download(img, i, path)
-            ManyDownload(url_queue,img, i, path,2)
+            ManyDownload(url_queue, img, i, path, 2)
             datalist.append(img)
-        item1 = soup.find_all("div",id="i3")
+        item1 = soup.find_all("div", id="i3")
         item1 = str(item1)
-        url = re.findall(findUrl,item1)[0]
+        url = re.findall(findUrl, item1)[0]
         i += 1
     return datalist
 
 
 # 创建文件夹，以图库名命名
-def createPath(url,a):
+def createPath(url, a):
     html = askURL(url)
     soup = BeautifulSoup(html, "lxml")
     item = soup.find_all("div", class_="sni")
     item = str(item)
     title = re.findall(findTitle, item)[0]
-    aa = ['?', '╲', '*', '<', '>', '|', ':', '：', '/']  #['*','|','?','/','<','>','"']
+    aa = ['?', '╲', '*', '<', '>', '|', ':', '：', '/']  # ['*','|','?','/','<','>','"']
     for itm in aa:
-        title = title.replace(itm,'_')
-    p = r"%s"%a
-        # input("请输入您想要保存的文件完整路径： \n")
-    path = "%s\%s" % (p,title)
+        title = title.replace(itm, '_')
+    p = r"%s" % a
+    # input("请输入您想要保存的文件完整路径： \n")
+    path = "%s\%s" % (p, title)
     # print(path)
     if not os.path.exists(path):  # 判断,是否存在此路径,若不存在则创建,注意这个创建的是文件夹
         os.mkdir(path)
         try:
-            print("创建文件夹 %s"%title)
+            print("创建文件夹 %s" % title)
         except:
             pass
     return path
 
 
 # 下载图片
-def single_thread_download(url, a ,dst, m):
+def single_thread_download(url, a, dst, m):
     """
     @param: url to download file
     @param: dst place to put the file
@@ -269,7 +274,7 @@ def single_thread_download(url, a ,dst, m):
     # pbar = tqdm(
     #     total=file_size, initial=first_byte,
     #     unit='B', unit_scale=True, desc=str(a) + ".jpg")  #url.split('/')[-1]
-    req = requests.get(url, headers=header, stream=True)   #stream=True
+    req = requests.get(url, headers=header, stream=True)  # stream=True
     fd = open(dst, 'wb')
     fd.truncate(file_size)
     fd.close()
@@ -280,14 +285,16 @@ def single_thread_download(url, a ,dst, m):
     #             pbar.update(1024)
     # pbar.close()
 
-#多线程下载
-def ManyDownload(url_queue,img, i, path,m):
+
+# 多线程下载
+def ManyDownload(url_queue, img, i, path, m):
     url_queue.put(img)
     for item in range(10):
         if url_queue.empty() == True:
             break
         url_img = url_queue.get()
-        t = threading.Thread(target=single_thread_download, name='th-' + str(i),kwargs={'url': url_img,'a': i,'dst': path,'m': m})
+        t = threading.Thread(target=single_thread_download, name='th-' + str(i),
+                             kwargs={'url': url_img, 'a': i, 'dst': path, 'm': m})
         t.start()
 
 
