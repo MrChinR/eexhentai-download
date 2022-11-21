@@ -26,3 +26,20 @@ exhentai服务器图片爬虫，非BT下载，防止种子文件不足。
 
 注意一定时间内不要爬取过大量的图片，防止ban IP。
 风险请自行承担。
+
+
+以下为自动翻译（The following is the automatic translation）
+
+V1.2.2 increase visual window and pictures according to the limit, convenient user operations
+V1.1 add multithreading features, load faster
+Exhentai server image crawler, BT download, prevent the seed file.
+Note that this program is only for individual learning to use
+Can climb took the picture of the specified range and save to the user specified path.
+Program from exhentai website server to download images, the BT download, do not have the resources for the seeds of the emergency.
+Used for the first time the need to provide cookies, after will be automatically saved.
+Cookie access method to baidu.
+Started, input the starting url of the page (page directory), note that the directory page displayed per page 40 images program to run properly.
+After input in accordance with the requirements to download the starting page number and the final page number, finally enter to save the full path, the program will automatically generate the same folder.
+Slower, please be patient, is optimized...
+Pay attention to a certain period of time not to crawl through a lot of pictures, prevent ban IP.
+Please make your own risk.
